@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+
+# Database
+data/*.db
+data/*.db-wal
+data/*.db-shm
+
+# Logs
+logs/*.log
+
+# Keep directories
+!data/.gitkeep
+!logs/.gitkeep
