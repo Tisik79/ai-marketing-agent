@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Marketing Agent - Chat</title>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-left">
+        <h1>AI Marketing Agent</h1>
+        <span id="agent-status" class="status-badge status-loading">Načítání...</span>
+      </div>
+      <div class="header-right">
+        <button onclick="location.href='index.html'" class="btn btn-outline">
+          <span>📊</span> Dashboard
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+          <div class="message assistant">
+            <div class="message-content">
+              Dobrý den! Jsem váš AI marketingový asistent. Můžu vám pomoci s:
+              <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                <li>Analýzou výkonu kampaní</li>
+                <li>Návrhy obsahu pro příspěvky</li>
+                <li>Optimalizací rozpočtu</li>
+                <li>Strategickým plánováním</li>
+              </ul>
+              Jak vám mohu pomoci?
+            </div>
+            <div class="message-time">Právě teď</div>
+          </div>
+        </div>
+
+        <div class="chat-input-container">
+          <input type="text" id="chat-input" class="chat-input" placeholder="Napište zprávu..." onkeypress="handleKeyPress(event)">
+          <button onclick="sendMessage()" class="btn btn-primary" id="send-btn">Odeslat</button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>AI Marketing Agent | <a href="index.html">Dashboard</a> | <a href="settings.html">Nastavení</a></p>
+    </footer>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    let isLoading = false;
+
+    async function init() {
+      try {
+        const history = await API.getChatHistory();
+        if (history.messages && history.messages.length > 0) {
+          const container = document.getElementById('chat-messages');
+          history.messages.forEach(msg => addMessage(msg.role, msg.content, new Date(msg.timestamp)));
+        }
+        const status = await API.getAgentStatus();
+        updateStatus(status);
+        document.getElementById('chat-input').focus();
+      } catch (error) {
+        console.error('Failed to initialize chat:', error);
+      }
+    }
+
+    function updateStatus(status) {
+      const statusEl = document.getElementById('agent-status');
+      if (status.running) {
+        statusEl.textContent = 'Aktivní';
+        statusEl.className = 'status-badge status-active';
+      } else {
+        statusEl.textContent = 'Neaktivní';
+        statusEl.className = 'status-badge status-error';
+      }
+    }
+
+    function handleKeyPress(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    }
+
+    async function sendMessage() {
+      if (isLoading) return;
+      const input = document.getElementById('chat-input');
+      const message = input.value.trim();
+      if (!message) return;
+      input.value = '';
+      addMessage('user', message);
+      isLoading = true;
+      const sendBtn = document.getElementById('send-btn');
+      sendBtn.textContent = 'Odesílám...';
+      sendBtn.disabled = true;
+      const typingId = addTypingIndicator();
+      try {
+        const response = await API.sendMessage(message);
+        removeTypingIndicator(typingId);
+        if (response.response) addMessage('assistant', response.response);
+        else if (response.error) addMessage('assistant', `Chyba: ${response.error}`);
+      } catch (error) {
+        removeTypingIndicator(typingId);
+        addMessage('assistant', 'Omlouvám se, došlo k chybě.');
+      } finally {
+        isLoading = false;
+        sendBtn.textContent = 'Odeslat';
+        sendBtn.disabled = false;
+        input.focus();
+      }
+    }
+
+    function addMessage(role, content, timestamp = new Date()) {
+      const container = document.getElementById('chat-messages');
+      const messageEl = document.createElement('div');
+      messageEl.className = `message ${role}`;
+      messageEl.innerHTML = `<div class="message-content">${formatMessage(content)}</div><div class="message-time">${formatTime(timestamp)}</div>`;
+      container.appendChild(messageEl);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function formatMessage(content) {
+      return content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+    }
+
+    function addTypingIndicator() {
+      const container = document.getElementById('chat-messages');
+      const id = 'typing-' + Date.now();
+      const typingEl = document.createElement('div');
+      typingEl.id = id;
+      typingEl.className = 'message assistant typing';
+      typingEl.innerHTML = '<div class="message-content"><span class="typing-dots"><span>.</span><span>.</span><span>.</span></span></div>';
+      container.appendChild(typingEl);
+      container.scrollTop = container.scrollHeight;
+      return id;
+    }
+
+    function removeTypingIndicator(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+
+    function formatTime(date) {
+      return date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+
+  <style>
+    .typing .typing-dots span { animation: blink 1.4s infinite both; font-size: 1.5rem; line-height: 0.5; }
+    .typing .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
+  </style>
+</body>
+</html>
