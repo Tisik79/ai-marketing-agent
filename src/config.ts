@@ -19,7 +19,7 @@ export const config: AppConfig = {
   facebookAppSecret: process.env.FACEBOOK_APP_SECRET,
   facebookAccessToken: process.env.FACEBOOK_ACCESS_TOKEN,
   facebookAccountId: process.env.FACEBOOK_ACCOUNT_ID,
-  port: process.env.PORT ? parseInt(process.env.PORT, 10) : 3000,
+  port: process.env.PORT ? parseInt(process.env.PORT, 10) : 3000, // Default port 3000
 };
 
 // Funkce pro validaci konfigurace
@@ -45,7 +45,11 @@ export const initFacebookSdk = () => {
   if (!validateConfig()) {
     throw new Error('Nelze inicializovat Facebook SDK: Chybí konfigurace.');
   }
+  // We know these are defined because validateConfig passed
   FacebookAdsApi.init(config.facebookAccessToken!);
+  // Optional: Set a default AdAccount instance if needed frequently
+  // const account = new AdAccount(config.facebookAccountId!);
+  // console.log('Facebook SDK inicializováno pro účet:', config.facebookAccountId);
 };
 
 // Funkce pro získání instance AdAccount
