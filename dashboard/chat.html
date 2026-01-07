@@ -8,6 +8,7 @@
 </head>
 <body>
   <div class="app">
+    <!-- Header -->
     <header class="header">
       <div class="header-left">
         <h1>AI Marketing Agent</h1>
@@ -20,6 +21,7 @@
       </div>
     </header>
 
+    <!-- Main Content -->
     <main class="main">
       <div class="chat-container">
         <div class="chat-messages" id="chat-messages">
@@ -39,12 +41,21 @@
         </div>
 
         <div class="chat-input-container">
-          <input type="text" id="chat-input" class="chat-input" placeholder="Napište zprávu..." onkeypress="handleKeyPress(event)">
-          <button onclick="sendMessage()" class="btn btn-primary" id="send-btn">Odeslat</button>
+          <input
+            type="text"
+            id="chat-input"
+            class="chat-input"
+            placeholder="Napište zprávu..."
+            onkeypress="handleKeyPress(event)"
+          >
+          <button onclick="sendMessage()" class="btn btn-primary" id="send-btn">
+            Odeslat
+          </button>
         </div>
       </div>
     </main>
 
+    <!-- Footer -->
     <footer class="footer">
       <p>AI Marketing Agent | <a href="index.html">Dashboard</a> | <a href="settings.html">Nastavení</a></p>
     </footer>
@@ -54,21 +65,35 @@
   <script>
     let isLoading = false;
 
+    /**
+     * Initialize chat
+     */
     async function init() {
       try {
+        // Load chat history
         const history = await API.getChatHistory();
         if (history.messages && history.messages.length > 0) {
           const container = document.getElementById('chat-messages');
-          history.messages.forEach(msg => addMessage(msg.role, msg.content, new Date(msg.timestamp)));
+          // Keep welcome message, add history
+          history.messages.forEach(msg => {
+            addMessage(msg.role, msg.content, new Date(msg.timestamp));
+          });
         }
+
+        // Check agent status
         const status = await API.getAgentStatus();
         updateStatus(status);
+
+        // Focus input
         document.getElementById('chat-input').focus();
       } catch (error) {
         console.error('Failed to initialize chat:', error);
       }
     }
 
+    /**
+     * Update agent status badge
+     */
     function updateStatus(status) {
       const statusEl = document.getElementById('agent-status');
       if (status.running) {
@@ -80,6 +105,9 @@
       }
     }
 
+    /**
+     * Handle Enter key press
+     */
     function handleKeyPress(event) {
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
@@ -87,26 +115,48 @@
       }
     }
 
+    /**
+     * Send message to AI
+     */
     async function sendMessage() {
       if (isLoading) return;
+
       const input = document.getElementById('chat-input');
       const message = input.value.trim();
+
       if (!message) return;
+
+      // Clear input
       input.value = '';
+
+      // Add user message
       addMessage('user', message);
+
+      // Show loading
       isLoading = true;
       const sendBtn = document.getElementById('send-btn');
       sendBtn.textContent = 'Odesílám...';
       sendBtn.disabled = true;
+
+      // Add typing indicator
       const typingId = addTypingIndicator();
+
       try {
         const response = await API.sendMessage(message);
+
+        // Remove typing indicator
         removeTypingIndicator(typingId);
-        if (response.response) addMessage('assistant', response.response);
-        else if (response.error) addMessage('assistant', `Chyba: ${response.error}`);
+
+        // Add AI response
+        if (response.response) {
+          addMessage('assistant', response.response);
+        } else if (response.error) {
+          addMessage('assistant', `Chyba: ${response.error}`);
+        }
       } catch (error) {
+        console.error('Failed to send message:', error);
         removeTypingIndicator(typingId);
-        addMessage('assistant', 'Omlouvám se, došlo k chybě.');
+        addMessage('assistant', 'Omlouvám se, došlo k chybě při zpracování vaší zprávy.');
       } finally {
         isLoading = false;
         sendBtn.textContent = 'Odeslat';
@@ -115,48 +165,141 @@
       }
     }
 
+    /**
+     * Add message to chat
+     */
     function addMessage(role, content, timestamp = new Date()) {
       const container = document.getElementById('chat-messages');
+
       const messageEl = document.createElement('div');
       messageEl.className = `message ${role}`;
-      messageEl.innerHTML = `<div class="message-content">${formatMessage(content)}</div><div class="message-time">${formatTime(timestamp)}</div>`;
+
+      // Convert markdown-like formatting
+      const formattedContent = formatMessage(content);
+
+      messageEl.innerHTML = `
+        <div class="message-content">${formattedContent}</div>
+        <div class="message-time">${formatTime(timestamp)}</div>
+      `;
+
       container.appendChild(messageEl);
+
+      // Scroll to bottom
       container.scrollTop = container.scrollHeight;
     }
 
+    /**
+     * Format message content
+     */
     function formatMessage(content) {
-      return content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+      // Escape HTML
+      let formatted = content
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      // Convert line breaks
+      formatted = formatted.replace(/\n/g, '<br>');
+
+      // Bold
+      formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+      // Italic
+      formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+      // Lists
+      formatted = formatted.replace(/^- (.+)$/gm, '<li>$1</li>');
+
+      return formatted;
     }
 
+    /**
+     * Add typing indicator
+     */
     function addTypingIndicator() {
       const container = document.getElementById('chat-messages');
       const id = 'typing-' + Date.now();
+
       const typingEl = document.createElement('div');
       typingEl.id = id;
       typingEl.className = 'message assistant typing';
-      typingEl.innerHTML = '<div class="message-content"><span class="typing-dots"><span>.</span><span>.</span><span>.</span></span></div>';
+      typingEl.innerHTML = `
+        <div class="message-content">
+          <span class="typing-dots">
+            <span>.</span><span>.</span><span>.</span>
+          </span>
+        </div>
+      `;
+
       container.appendChild(typingEl);
       container.scrollTop = container.scrollHeight;
+
       return id;
     }
 
+    /**
+     * Remove typing indicator
+     */
     function removeTypingIndicator(id) {
-      const el = document.getElementById(id);
-      if (el) el.remove();
+      const typingEl = document.getElementById(id);
+      if (typingEl) {
+        typingEl.remove();
+      }
     }
 
+    /**
+     * Format time
+     */
     function formatTime(date) {
-      return date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+      return date.toLocaleTimeString('cs-CZ', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
     }
 
+    // Initialize on load
     document.addEventListener('DOMContentLoaded', init);
   </script>
 
   <style>
-    .typing .typing-dots span { animation: blink 1.4s infinite both; font-size: 1.5rem; line-height: 0.5; }
-    .typing .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-    .typing .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
+    /* Additional chat-specific styles */
+    .typing .typing-dots span {
+      animation: blink 1.4s infinite both;
+      font-size: 1.5rem;
+      line-height: 0.5;
+    }
+
+    .typing .typing-dots span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing .typing-dots span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes blink {
+      0% { opacity: 0.2; }
+      20% { opacity: 1; }
+      100% { opacity: 0.2; }
+    }
+
+    .message-content ul,
+    .message-content ol {
+      margin: 0.5rem 0;
+      padding-left: 1.5rem;
+    }
+
+    .message-content li {
+      margin-bottom: 0.25rem;
+    }
+
+    .message.user .message-content {
+      color: white;
+    }
+
+    .message.assistant .message-content {
+      color: var(--gray-900);
+    }
   </style>
 </body>
 </html>

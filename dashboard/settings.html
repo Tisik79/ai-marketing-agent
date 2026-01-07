@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Marketing Agent - Nastavení</title>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <h1>AI Marketing Agent</h1>
+        <span id="agent-status" class="status-badge status-loading">Načítání...</span>
+      </div>
+      <div class="header-right">
+        <button onclick="location.href='index.html'" class="btn btn-outline">
+          <span>📊</span> Dashboard
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+      <div class="two-columns">
+        <!-- Left Column - General Settings -->
+        <div class="column">
+          <section class="card">
+            <h2>Agent</h2>
+            <form id="agent-form">
+              <div class="form-group">
+                <label class="form-label">Název agenta</label>
+                <input type="text" id="agent-name" class="form-input" placeholder="Můj Marketing Agent">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Facebook Page ID</label>
+                <input type="text" id="facebook-page-id" class="form-input" placeholder="123456789">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Facebook Ad Account ID</label>
+                <input type="text" id="facebook-account-id" class="form-input" placeholder="act_123456789">
+              </div>
+
+              <button type="submit" class="btn btn-primary">Uložit</button>
+            </form>
+          </section>
+
+          <section class="card">
+            <h2>Rozpočet</h2>
+            <form id="budget-form">
+              <div class="form-group">
+                <label class="form-label">Měsíční rozpočet (CZK)</label>
+                <input type="number" id="monthly-budget" class="form-input" min="0" step="100">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Denní limit (CZK)</label>
+                <input type="number" id="daily-limit" class="form-input" min="0" step="10">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Alert při % rozpočtu</label>
+                <input type="number" id="alert-threshold" class="form-input" min="0" max="100" step="5">
+              </div>
+
+              <button type="submit" class="btn btn-primary">Uložit</button>
+            </form>
+          </section>
+        </div>
+
+        <!-- Right Column - Goals & Notifications -->
+        <div class="column">
+          <section class="card">
+            <div class="card-header">
+              <h2>Cíle</h2>
+              <button onclick="showAddGoalModal()" class="btn btn-primary">+ Přidat cíl</button>
+            </div>
+            <div id="goals-list" class="goals-list">
+              <p class="loading">Načítání...</p>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>Notifikace</h2>
+            <form id="notifications-form">
+              <div class="form-group">
+                <label class="form-label">Email pro notifikace</label>
+                <input type="email" id="notification-email" class="form-input" placeholder="vas@email.cz">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" id="daily-report"> Denní report
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" id="weekly-report"> Týdenní report
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" id="alert-notifications"> Alerty (budget, výkon)
+                </label>
+              </div>
+
+              <button type="submit" class="btn btn-primary">Uložit</button>
+            </form>
+          </section>
+
+          <section class="card">
+            <h2>Schvalování</h2>
+            <form id="approval-form">
+              <div class="form-group">
+                <label class="form-label">Vyžadovat schválení pro</label>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                  <label><input type="checkbox" id="approve-posts" checked> Příspěvky</label>
+                  <label><input type="checkbox" id="approve-ads" checked> Reklamy</label>
+                  <label><input type="checkbox" id="approve-budget" checked> Změny rozpočtu</label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Expirace schválení (hodiny)</label>
+                <input type="number" id="approval-expiry" class="form-input" min="1" max="168" value="24">
+              </div>
+
+              <button type="submit" class="btn btn-primary">Uložit</button>
+            </form>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>AI Marketing Agent | <a href="index.html">Dashboard</a> | <a href="logs.html">Logy</a></p>
+    </footer>
+  </div>
+
+  <!-- Add Goal Modal -->
+  <div id="goal-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Přidat cíl</h3>
+        <button onclick="hideGoalModal()" class="btn btn-outline">&times;</button>
+      </div>
+      <form id="goal-form">
+        <div class="form-group">
+          <label class="form-label">Typ cíle</label>
+          <select id="goal-type" class="form-select">
+            <option value="leads">Leads</option>
+            <option value="reach">Dosah</option>
+            <option value="engagement">Engagement</option>
+            <option value="followers">Sledující</option>
+            <option value="conversions">Konverze</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Cílová hodnota</label>
+          <input type="number" id="goal-target" class="form-input" min="1" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Období</label>
+          <select id="goal-period" class="form-select">
+            <option value="weekly">Týdně</option>
+            <option value="monthly">Měsíčně</option>
+            <option value="quarterly">Čtvrtletně</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Priorita</label>
+          <select id="goal-priority" class="form-select">
+            <option value="1">Vysoká (1)</option>
+            <option value="2">Střední (2)</option>
+            <option value="3">Nízká (3)</option>
+          </select>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+          <button type="button" onclick="hideGoalModal()" class="btn btn-outline">Zrušit</button>
+          <button type="submit" class="btn btn-primary">Přidat</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    let settings = null;
+
+    /**
+     * Initialize settings page
+     */
+    async function init() {
+      try {
+        // Load settings
+        settings = await API.getSettings();
+        populateForm(settings);
+
+        // Load goals
+        const goals = await API.getGoals();
+        displayGoals(goals);
+
+        // Check agent status
+        const status = await API.getAgentStatus();
+        updateStatus(status);
+      } catch (error) {
+        console.error('Failed to load settings:', error);
+        alert('Nepodařilo se načíst nastavení');
+      }
+    }
+
+    /**
+     * Update agent status badge
+     */
+    function updateStatus(status) {
+      const statusEl = document.getElementById('agent-status');
+      if (status.running) {
+        statusEl.textContent = 'Aktivní';
+        statusEl.className = 'status-badge status-active';
+      } else {
+        statusEl.textContent = 'Neaktivní';
+        statusEl.className = 'status-badge status-error';
+      }
+    }
+
+    /**
+     * Populate form with settings
+     */
+    function populateForm(settings) {
+      if (!settings) return;
+
+      // Agent
+      document.getElementById('agent-name').value = settings.name || '';
+      document.getElementById('facebook-page-id').value = settings.facebookPageId || '';
+      document.getElementById('facebook-account-id').value = settings.facebookAccountId || '';
+
+      // Budget
+      if (settings.budget) {
+        document.getElementById('monthly-budget').value = settings.budget.total || 0;
+        document.getElementById('daily-limit').value = settings.budget.dailyLimit || 0;
+        document.getElementById('alert-threshold').value = settings.budget.alertThreshold || 80;
+      }
+
+      // Notifications
+      if (settings.notifications) {
+        document.getElementById('notification-email').value = settings.notifications.email || '';
+        document.getElementById('daily-report').checked = settings.notifications.dailyReport !== false;
+        document.getElementById('weekly-report').checked = settings.notifications.weeklyReport !== false;
+        document.getElementById('alert-notifications').checked = settings.notifications.alerts !== false;
+      }
+
+      // Approval
+      if (settings.approval) {
+        document.getElementById('approve-posts').checked = settings.approval.requireForPosts !== false;
+        document.getElementById('approve-ads').checked = settings.approval.requireForAds !== false;
+        document.getElementById('approve-budget').checked = settings.approval.requireForBudget !== false;
+        document.getElementById('approval-expiry').value = settings.approval.expiryHours || 24;
+      }
+    }
+
+    /**
+     * Display goals list
+     */
+    function displayGoals(goals) {
+      const container = document.getElementById('goals-list');
+
+      if (!goals || goals.length === 0) {
+        container.innerHTML = '<p class="empty-state">Žádné cíle nejsou definovány</p>';
+        return;
+      }
+
+      container.innerHTML = goals.map(goal => `
+        <div class="goal-item">
+          <div class="goal-info">
+            <div class="goal-name">${getGoalTypeName(goal.type)}</div>
+            <div class="goal-progress-text">${goal.current || 0} / ${goal.target} (${goal.period})</div>
+          </div>
+          <button onclick="deleteGoal('${goal.id}')" class="btn btn-danger" style="padding: 0.25rem 0.5rem;">
+            ✗
+          </button>
+        </div>
+      `).join('');
+    }
+
+    /**
+     * Get goal type display name
+     */
+    function getGoalTypeName(type) {
+      const names = {
+        leads: 'Leads',
+        reach: 'Dosah',
+        engagement: 'Engagement',
+        followers: 'Sledující',
+        conversions: 'Konverze',
+      };
+      return names[type] || type;
+    }
+
+    /**
+     * Show add goal modal
+     */
+    function showAddGoalModal() {
+      document.getElementById('goal-modal').style.display = 'flex';
+    }
+
+    /**
+     * Hide goal modal
+     */
+    function hideGoalModal() {
+      document.getElementById('goal-modal').style.display = 'none';
+      document.getElementById('goal-form').reset();
+    }
+
+    /**
+     * Delete a goal
+     */
+    async function deleteGoal(id) {
+      if (!confirm('Opravdu chcete smazat tento cíl?')) return;
+
+      try {
+        await API.deleteGoal(id);
+        const goals = await API.getGoals();
+        displayGoals(goals);
+      } catch (error) {
+        console.error('Failed to delete goal:', error);
+        alert('Nepodařilo se smazat cíl');
+      }
+    }
+
+    // Form submissions
+    document.getElementById('agent-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        await API.updateSettings({
+          name: document.getElementById('agent-name').value,
+          facebookPageId: document.getElementById('facebook-page-id').value,
+          facebookAccountId: document.getElementById('facebook-account-id').value,
+        });
+        alert('Nastavení agenta uloženo');
+      } catch (error) {
+        alert('Nepodařilo se uložit nastavení');
+      }
+    });
+
+    document.getElementById('budget-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        await API.updateSettings({
+          budget: {
+            total: parseInt(document.getElementById('monthly-budget').value) || 0,
+            dailyLimit: parseInt(document.getElementById('daily-limit').value) || 0,
+            alertThreshold: parseInt(document.getElementById('alert-threshold').value) || 80,
+          }
+        });
+        alert('Nastavení rozpočtu uloženo');
+      } catch (error) {
+        alert('Nepodařilo se uložit nastavení');
+      }
+    });
+
+    document.getElementById('notifications-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        await API.updateSettings({
+          notifications: {
+            email: document.getElementById('notification-email').value,
+            dailyReport: document.getElementById('daily-report').checked,
+            weeklyReport: document.getElementById('weekly-report').checked,
+            alerts: document.getElementById('alert-notifications').checked,
+          }
+        });
+        alert('Nastavení notifikací uloženo');
+      } catch (error) {
+        alert('Nepodařilo se uložit nastavení');
+      }
+    });
+
+    document.getElementById('approval-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        await API.updateSettings({
+          approval: {
+            requireForPosts: document.getElementById('approve-posts').checked,
+            requireForAds: document.getElementById('approve-ads').checked,
+            requireForBudget: document.getElementById('approve-budget').checked,
+            expiryHours: parseInt(document.getElementById('approval-expiry').value) || 24,
+          }
+        });
+        alert('Nastavení schvalování uloženo');
+      } catch (error) {
+        alert('Nepodařilo se uložit nastavení');
+      }
+    });
+
+    document.getElementById('goal-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        await API.createGoal({
+          type: document.getElementById('goal-type').value,
+          target: parseInt(document.getElementById('goal-target').value),
+          period: document.getElementById('goal-period').value,
+          priority: parseInt(document.getElementById('goal-priority').value),
+        });
+        hideGoalModal();
+        const goals = await API.getGoals();
+        displayGoals(goals);
+      } catch (error) {
+        alert('Nepodařilo se vytvořit cíl');
+      }
+    });
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+
+  <style>
+    /* Modal styles */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 400px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+    }
+
+    .modal-header .btn {
+      padding: 0.25rem 0.5rem;
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+
+    /* Checkbox styling */
+    input[type="checkbox"] {
+      margin-right: 0.5rem;
+    }
+  </style>
+</body>
+</html>

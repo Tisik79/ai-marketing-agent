@@ -9,6 +9,7 @@
 </head>
 <body>
   <div class="app">
+    <!-- Header -->
     <header class="header">
       <div class="header-left">
         <h1>AI Marketing Agent</h1>
@@ -22,7 +23,9 @@
       </div>
     </header>
 
+    <!-- Main Content -->
     <main class="main">
+      <!-- KPI Cards -->
       <section class="kpi-section">
         <div class="kpi-card">
           <div class="kpi-icon">💰</div>
@@ -35,6 +38,7 @@
             </div>
           </div>
         </div>
+
         <div class="kpi-card">
           <div class="kpi-icon">👁️</div>
           <div class="kpi-content">
@@ -43,6 +47,7 @@
             <div class="kpi-subtitle">tento měsíc</div>
           </div>
         </div>
+
         <div class="kpi-card">
           <div class="kpi-icon">🎯</div>
           <div class="kpi-content">
@@ -51,6 +56,7 @@
             <div class="kpi-subtitle" id="leads-goal">-</div>
           </div>
         </div>
+
         <div class="kpi-card">
           <div class="kpi-icon">📈</div>
           <div class="kpi-content">
@@ -61,14 +67,19 @@
         </div>
       </section>
 
+      <!-- Two Column Layout -->
       <div class="two-columns">
+        <!-- Left Column -->
         <div class="column">
+          <!-- Chart -->
           <section class="card">
             <h2>📊 Výkon (posledních 7 dní)</h2>
             <div class="chart-container">
               <canvas id="performance-chart"></canvas>
             </div>
           </section>
+
+          <!-- Goals -->
           <section class="card">
             <h2>🎯 Plnění cílů</h2>
             <div id="goals-list" class="goals-list">
@@ -76,7 +87,10 @@
             </div>
           </section>
         </div>
+
+        <!-- Right Column -->
         <div class="column">
+          <!-- Pending Approvals -->
           <section class="card">
             <div class="card-header">
               <h2>⏳ Ke schválení</h2>
@@ -86,6 +100,8 @@
               <p class="empty-state">Žádné čekající akce</p>
             </div>
           </section>
+
+          <!-- Recent Actions -->
           <section class="card">
             <h2>📋 Poslední akce</h2>
             <div id="recent-list" class="action-list">
@@ -97,11 +113,13 @@
       </div>
     </main>
 
+    <!-- Footer -->
     <footer class="footer">
       <p>AI Marketing Agent | <a href="settings.html">Nastavení</a> | <a href="logs.html">Logy</a></p>
     </footer>
   </div>
 
+  <!-- Preview Modal -->
   <div id="preview-modal" class="modal" style="display: none;">
     <div class="modal-backdrop" onclick="closePreview()"></div>
     <div class="modal-content">

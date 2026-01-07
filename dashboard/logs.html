@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Marketing Agent - Logy</title>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <h1>AI Marketing Agent</h1>
+        <span id="agent-status" class="status-badge status-loading">Načítání...</span>
+      </div>
+      <div class="header-right">
+        <button onclick="location.href='index.html'" class="btn btn-outline">
+          <span>📊</span> Dashboard
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+      <section class="card">
+        <div class="card-header">
+          <h2>Audit Log</h2>
+          <div style="display: flex; gap: 0.5rem;">
+            <select id="filter-type" class="form-select" style="width: auto;" onchange="filterLogs()">
+              <option value="">Všechny typy</option>
+              <option value="action_created">Akce vytvořena</option>
+              <option value="action_approved">Akce schválena</option>
+              <option value="action_rejected">Akce zamítnuta</option>
+              <option value="action_executed">Akce provedena</option>
+              <option value="action_failed">Akce selhala</option>
+              <option value="system">Systém</option>
+              <option value="ai_decision">AI rozhodnutí</option>
+            </select>
+            <button onclick="refreshLogs()" class="btn btn-outline">Obnovit</button>
+          </div>
+        </div>
+
+        <div class="logs-container" id="logs-container">
+          <p class="loading">Načítání...</p>
+        </div>
+
+        <div class="pagination" id="pagination">
+          <button onclick="prevPage()" class="btn btn-outline" id="prev-btn" disabled>← Předchozí</button>
+          <span id="page-info">Stránka 1</span>
+          <button onclick="nextPage()" class="btn btn-outline" id="next-btn">Další →</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>AI Marketing Agent | <a href="index.html">Dashboard</a> | <a href="settings.html">Nastavení</a></p>
+    </footer>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    let allLogs = [];
+    let filteredLogs = [];
+    let currentPage = 1;
+    const logsPerPage = 20;
+
+    /**
+     * Initialize logs page
+     */
+    async function init() {
+      try {
+        await refreshLogs();
+
+        // Check agent status
+        const status = await API.getAgentStatus();
+        updateStatus(status);
+      } catch (error) {
+        console.error('Failed to initialize logs:', error);
+        showError('Nepodařilo se načíst logy');
+      }
+    }
+
+    /**
+     * Update agent status badge
+     */
+    function updateStatus(status) {
+      const statusEl = document.getElementById('agent-status');
+      if (status.running) {
+        statusEl.textContent = 'Aktivní';
+        statusEl.className = 'status-badge status-active';
+      } else {
+        statusEl.textContent = 'Neaktivní';
+        statusEl.className = 'status-badge status-error';
+      }
+    }
+
+    /**
+     * Refresh logs from API
+     */
+    async function refreshLogs() {
+      try {
+        const response = await API.getLogs(500);
+        allLogs = response.logs || [];
+        filterLogs();
+      } catch (error) {
+        console.error('Failed to load logs:', error);
+        showError('Nepodařilo se načíst logy');
+      }
+    }
+
+    /**
+     * Filter logs by type
+     */
+    function filterLogs() {
+      const filterType = document.getElementById('filter-type').value;
+
+      if (filterType) {
+        filteredLogs = allLogs.filter(log => log.eventType === filterType);
+      } else {
+        filteredLogs = [...allLogs];
+      }
+
+      currentPage = 1;
+      displayLogs();
+      updatePagination();
+    }
+
+    /**
+     * Display current page of logs
+     */
+    function displayLogs() {
+      const container = document.getElementById('logs-container');
+
+      if (filteredLogs.length === 0) {
+        container.innerHTML = '<p class="empty-state">Žádné záznamy</p>';
+        return;
+      }
+
+      const start = (currentPage - 1) * logsPerPage;
+      const end = start + logsPerPage;
+      const pageLogs = filteredLogs.slice(start, end);
+
+      container.innerHTML = `
+        <table class="logs-table">
+          <thead>
+            <tr>
+              <th>Čas</th>
+              <th>Typ</th>
+              <th>Popis</th>
+              <th>Detaily</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${pageLogs.map(log => `
+              <tr class="log-row log-${getLogLevel(log.eventType)}">
+                <td class="log-time">${formatDateTime(log.timestamp)}</td>
+                <td class="log-type">
+                  <span class="log-badge ${getLogLevel(log.eventType)}">${getEventTypeName(log.eventType)}</span>
+                </td>
+                <td class="log-description">${escapeHtml(log.description)}</td>
+                <td class="log-details">
+                  ${log.metadata ? `<button onclick="showDetails('${escapeHtml(JSON.stringify(log.metadata))}')" class="btn btn-outline" style="padding: 0.125rem 0.5rem; font-size: 0.75rem;">Zobrazit</button>` : '-'}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    /**
+     * Update pagination controls
+     */
+    function updatePagination() {
+      const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
+
+      document.getElementById('page-info').textContent = `Stránka ${currentPage} z ${totalPages || 1}`;
+      document.getElementById('prev-btn').disabled = currentPage <= 1;
+      document.getElementById('next-btn').disabled = currentPage >= totalPages;
+    }
+
+    /**
+     * Go to previous page
+     */
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        displayLogs();
+        updatePagination();
+      }
+    }
+
+    /**
+     * Go to next page
+     */
+    function nextPage() {
+      const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        displayLogs();
+        updatePagination();
+      }
+    }
+
+    /**
+     * Get event type display name
+     */
+    function getEventTypeName(type) {
+      const names = {
+        action_created: 'Akce vytvořena',
+        action_approved: 'Schváleno',
+        action_rejected: 'Zamítnuto',
+        action_executed: 'Provedeno',
+        action_failed: 'Selhalo',
+        action_expired: 'Expirováno',
+        system: 'Systém',
+        ai_decision: 'AI rozhodnutí',
+        email_sent: 'Email odeslán',
+        error: 'Chyba',
+      };
+      return names[type] || type;
+    }
+
+    /**
+     * Get log level for styling
+     */
+    function getLogLevel(type) {
+      if (type.includes('failed') || type === 'error') return 'error';
+      if (type.includes('rejected') || type.includes('expired')) return 'warning';
+      if (type.includes('approved') || type.includes('executed')) return 'success';
+      return 'info';
+    }
+
+    /**
+     * Format date and time
+     */
+    function formatDateTime(timestamp) {
+      const date = new Date(timestamp);
+      return date.toLocaleString('cs-CZ', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+    }
+
+    /**
+     * Escape HTML
+     */
+    function escapeHtml(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    /**
+     * Show details modal
+     */
+    function showDetails(jsonString) {
+      try {
+        const data = JSON.parse(jsonString);
+        const formatted = JSON.stringify(data, null, 2);
+        alert(formatted);
+      } catch {
+        alert(jsonString);
+      }
+    }
+
+    /**
+     * Show error message
+     */
+    function showError(message) {
+      const container = document.getElementById('logs-container');
+      container.innerHTML = `<p class="empty-state" style="color: var(--danger);">${message}</p>`;
+    }
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+
+  <style>
+    .logs-container {
+      overflow-x: auto;
+    }
+
+    .logs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    .logs-table th,
+    .logs-table td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .logs-table th {
+      background: var(--gray-50);
+      font-weight: 600;
+      color: var(--gray-700);
+    }
+
+    .log-time {
+      white-space: nowrap;
+      color: var(--gray-500);
+      font-family: monospace;
+      font-size: 0.75rem;
+    }
+
+    .log-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .log-badge.info {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .log-badge.success {
+      background: #D1FAE5;
+      color: #065F46;
+    }
+
+    .log-badge.warning {
+      background: #FEF3C7;
+      color: #92400E;
+    }
+
+    .log-badge.error {
+      background: #FEE2E2;
+      color: #991B1B;
+    }
+
+    .log-description {
+      max-width: 400px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    #page-info {
+      color: var(--gray-500);
+      font-size: 0.875rem;
+    }
+  </style>
+</body>
+</html>
