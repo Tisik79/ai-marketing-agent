@@ -67,8 +67,8 @@ This project also provides a Model Context Protocol (MCP) server designed to int
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/Tisik79/MCP-Facebook.git
-    cd MCP-Facebook
+    git clone https://github.com/Tisik79/ai-marketing-agent.git
+    cd ai-marketing-agent
     ```
 2.  **Install dependencies:**
     ```bash
@@ -106,7 +106,7 @@ This project also provides a Model Context Protocol (MCP) server designed to int
     The server will start and listen for MCP connections via stdio.
 
 3.  **Connect with an MCP Client (e.g., Claude Desktop):**
-    Follow the instructions in `CLAUDE_DESKTOP_GUIDE.md` to configure your MCP client to connect to this server using the `npm start` command or by directly running `node dist/index.js`.
+    Configure your MCP client to connect to this server using the `npm start` command or by directly running `node dist/index.js`.
 
 ## Available Tools (via MCP)
 
