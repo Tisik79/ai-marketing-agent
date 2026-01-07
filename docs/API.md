@@ -169,7 +169,10 @@ Vrací seznam čekajících akcí.
       "confidence": "medium",
       "payload": {
         "content": "Post content here...",
-        "scheduledTime": "14:00"
+        "scheduledTime": "14:00",
+        "imagePath": "/uploads/images/nanobanana_uuid.png",
+        "imageSource": "dalle",
+        "imagePrompt": "Winter house maintenance scene..."
       }
     }
   ]
@@ -337,6 +340,85 @@ HTML page with success/error message.
 
 ---
 
+### Image API
+
+#### POST /api/images/upload
+
+Upload image for post.
+
+Nahrání obrázku pro příspěvek.
+
+**Request / Požadavek:**
+```
+Content-Type: multipart/form-data
+image: [binary file]
+```
+
+**Response / Odpověď:**
+```json
+{
+  "success": true,
+  "filename": "upload_uuid.png",
+  "path": "/uploads/images/upload_uuid.png"
+}
+```
+
+---
+
+#### GET /api/images/:filename
+
+Serves uploaded or generated image.
+
+Servíruje nahraný nebo vygenerovaný obrázek.
+
+**Parameters / Parametry:**
+- `filename`: Image filename
+
+**Response / Odpověď:**
+Binary image file with appropriate Content-Type header.
+
+---
+
+#### POST /api/regenerate-image/:actionId
+
+Regenerates Nano Banana image for pending action.
+
+Regeneruje Nano Banana obrázek pro čekající akci.
+
+**Parameters / Parametry:**
+- `actionId`: ID of pending action
+
+**Request / Požadavek (optional):**
+```json
+{
+  "prompt": "New image prompt (optional)"
+}
+```
+
+**Response / Odpověď:**
+```json
+{
+  "success": true,
+  "imagePath": "/uploads/images/nanobanana_uuid.png"
+}
+```
+
+---
+
+#### GET /webhook/regenerate/:token
+
+Regenerates image via email link.
+
+Regeneruje obrázek přes odkaz z emailu.
+
+**Parameters / Parametry:**
+- `token`: Approval token from action
+
+**Response / Odpověď:**
+HTML page with new image preview.
+
+---
+
 ### Health Check
 
 #### GET /health
@@ -411,6 +493,20 @@ When limit is exceeded / Při překročení limitu:
 
 ---
 
+## Image Sources / Zdroje obrázků
+
+| Source | Description EN | Popis CZ |
+|--------|---------------|----------|
+| `dalle` | AI generated (Nano Banana) | AI vygenerovaný (Nano Banana) |
+| `upload` | User uploaded | Nahraný uživatelem |
+| `none` | No image | Bez obrázku |
+
+> Note: The `dalle` value is used for backward compatibility. The actual image generation is performed by Nano Banana (Gemini 2.5 Flash Image).
+>
+> Poznámka: Hodnota `dalle` se používá pro zpětnou kompatibilitu. Obrázky jsou generovány pomocí Nano Banana (Gemini 2.5 Flash Image).
+
+---
+
 ## Action Statuses / Stavy akcí
 
 | Status | Description EN | Popis CZ |
@@ -448,6 +544,13 @@ curl http://localhost:6081/api/dashboard
 curl -X POST http://localhost:6081/api/chat \
   -H "Content-Type: application/json" \
   -d '{"message": "Create a post about spring cleaning"}'
+```
+
+**Send chat message with image upload:**
+```bash
+curl -X POST http://localhost:6081/api/chat \
+  -F "message=Create a post with this image" \
+  -F "image=@/path/to/image.jpg"
 ```
 
 **Approve action:**
