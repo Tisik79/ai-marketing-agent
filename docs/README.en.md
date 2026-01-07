@@ -88,8 +88,8 @@ The AI Marketing Agent is a Node.js application that uses Claude AI (Anthropic) 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Tisik79/ai-marketing-agent.git
-cd ai-marketing-agent
+git clone <repository-url>
+cd Facebook_marketing
 ```
 
 ### 2. Install Dependencies
@@ -404,7 +404,7 @@ Submits edited content and approves.
 ### Project Structure
 
 ```
-ai-marketing-agent/
+Facebook_marketing/
 ├── src/
 │   ├── agent/           # Agent types and interfaces
 │   ├── ai/              # AI client and prompts

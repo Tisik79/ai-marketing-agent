@@ -88,8 +88,8 @@ AI Marketing Agent je Node.js aplikace využívající Claude AI (Anthropic) pro
 ### 1. Klonování repozitáře
 
 ```bash
-git clone https://github.com/Tisik79/ai-marketing-agent.git
-cd ai-marketing-agent
+git clone <repository-url>
+cd Facebook_marketing
 ```
 
 ### 2. Instalace závislostí
@@ -404,7 +404,7 @@ Odešle upravený obsah a schválí.
 ### Struktura projektu
 
 ```
-ai-marketing-agent/
+Facebook_marketing/
 ├── src/
 │   ├── agent/           # Typy a rozhraní agenta
 │   ├── ai/              # AI klient a prompty
@@ -450,9 +450,9 @@ Požadavek uživatele → Chat API → AI Brain → Fronta akcí → Schválení
                                                  ↓
                                       E-mailová notifikace
                                                  ↓
-                              Lidské schválení/zamítnutí
+                                   Lidské schválení/zamítnutí
                                                  ↓
-                               Executor akcí → Facebook API
+                                    Executor akcí → Facebook API
                                                  ↓
                                       Potvrzovací e-mail
 ```
