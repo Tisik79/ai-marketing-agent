@@ -148,9 +148,15 @@ Facebook_marketing/
 │   │
 │   ├── ai/                       # AI/Claude integration
 │   │   ├── client.ts             # Anthropic API client
+│   │   ├── gemini-client.ts      # Google Gemini API (Nano Banana)
 │   │   ├── brain.ts              # Main AI logic
 │   │   └── prompts/              # System prompts
 │   │       └── system.ts         # Prompt templates
+│   │
+│   ├── tools/                    # External tools
+│   │   ├── image-tools.ts        # Image generation & upload
+│   │   ├── post-tools.ts         # Facebook post operations
+│   │   └── campaign-tools.ts     # Facebook campaign operations
 │   │
 │   ├── approval/                 # Approval workflow
 │   │   ├── queue.ts              # Action queue management
@@ -199,6 +205,9 @@ Facebook_marketing/
 │
 ├── data/                         # Runtime data
 │   └── agent.db                  # SQLite database
+│
+├── uploads/                      # User uploads and generated images
+│   └── images/                   # Post images (Nano Banana + uploads)
 │
 ├── docs/                         # Documentation
 │   ├── README.en.md              # English docs
@@ -285,12 +294,13 @@ CREATE TABLE budget_transactions (
 ## Technology Stack / Technologický stack
 
 | Layer | Technology | Purpose |
-|-------|------------|---------||
+|-------|------------|----------|
 | Runtime | Node.js 18+ | JavaScript runtime |
 | Language | TypeScript | Type-safe JavaScript |
 | Web Server | Express.js | HTTP routing |
 | Database | SQLite | Persistent storage |
 | AI | Anthropic Claude | Content generation |
+| Image Generation | Nano Banana (Gemini 2.5 Flash Image) | AI image creation |
 | Scheduler | node-cron | Task scheduling |
 | Email | Nodemailer | SMTP sending |
 | Security | Helmet | HTTP headers |
