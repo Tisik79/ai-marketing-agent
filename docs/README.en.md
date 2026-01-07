@@ -38,6 +38,8 @@ The AI Marketing Agent is a Node.js application that uses Claude AI (Anthropic) 
 - Creates engaging Facebook posts tailored to your target audience
 - Considers current date, season, and relevant events
 - Suggests optimal posting times and hashtags
+- **Image generation using Nano Banana (Gemini 2.5 Flash Image)** - AI automatically creates images for posts
+- Option to upload custom images via chat interface
 
 ### Campaign Performance Analysis
 - Analyzes impressions, reach, clicks, CTR, CPC, and conversions
@@ -80,6 +82,7 @@ The AI Marketing Agent is a Node.js application that uses Claude AI (Anthropic) 
   - Page Access Token
 - Anthropic API Key (Claude)
 - SMTP server for email notifications (e.g., Gmail)
+- Google AI API Key (optional, for image generation via Nano Banana)
 
 ---
 
@@ -147,6 +150,10 @@ BASE_URL=http://your-server-ip:6081
 # Anthropic AI
 ANTHROPIC_API_KEY=sk-ant-...
 
+# Google AI (optional - for image generation)
+# Get it from: https://aistudio.google.com/app/apikey
+GOOGLE_AI_API_KEY=AIzaSy-...
+
 # Agent Configuration
 AGENT_NAME=Marketing Agent
 MONTHLY_BUDGET=10000
@@ -154,13 +161,13 @@ DAILY_LIMIT=500
 BUDGET_ALERT_THRESHOLD=80
 
 # Email SMTP
-SMTP_HOST=smtp.gmail.com
+SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_SECURE=false
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-EMAIL_FROM=AI Marketing Agent <your-email@gmail.com>
-EMAIL_TO=recipient@email.com
+SMTP_USER=noreply@example.com
+SMTP_PASS=<your-smtp-password>
+EMAIL_FROM=AI Marketing Agent <noreply@example.com>
+EMAIL_TO=admin@example.com
 
 # Logging
 LOG_LEVEL=info
@@ -220,9 +227,15 @@ http://your-server-ip:6081/dashboard/chat.html
 
 Example commands:
 - "Create a post about winter home maintenance"
+- "Create a post with an image about spring garden care" (AI will generate image via Nano Banana)
 - "How is our budget looking?"
 - "Analyze campaign performance"
 - "What posts should we publish this week?"
+
+**Image Generation:**
+- AI can automatically generate images for posts using Nano Banana (Gemini 2.5 Flash Image)
+- You can also upload your own image by clicking the image icon in chat
+- Images are optimized for Central European context
 
 ---
 
@@ -253,10 +266,12 @@ Each pending action shows:
 
 Clicking the preview button opens a modal showing:
 - Full post content as it will appear on Facebook
+- **Image preview** (if generated via Nano Banana or uploaded by user)
 - AI reasoning for the suggestion
 - Expected impact
 - Confidence level (High/Medium/Low)
 - Approve/Reject buttons
+- **Regenerate image button** (for images generated via Nano Banana)
 
 ### Chat Interface (`/dashboard/chat.html`)
 
