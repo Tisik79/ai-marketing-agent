@@ -1,138 +1,91 @@
 /**
- * Logger Module - Winston-based logging
+ * Winston Logger Configuration
  */
 
 import winston from 'winston';
-import { join } from 'path';
 
-// Log levels
-const levels = {
-  error: 0,
-  warn: 1,
-  info: 2,
-  http: 3,
-  debug: 4,
-};
+const { combine, timestamp, printf, colorize, errors } = winston.format;
 
-// Colors for console output
-const colors = {
-  error: 'red',
-  warn: 'yellow',
-  info: 'green',
-  http: 'magenta',
-  debug: 'blue',
-};
+// Custom log format
+const logFormat = printf(({ level, message, timestamp, component, ...metadata }) => {
+  let msg = `${timestamp} [${level}]`;
+  if (component) {
+    msg += ` [${component}]`;
+  }
+  msg += ` ${message}`;
 
-winston.addColors(colors);
+  // Add metadata if present
+  const metaKeys = Object.keys(metadata).filter(k => k !== 'stack');
+  if (metaKeys.length > 0) {
+    const metaStr = metaKeys.map(k => `${k}=${JSON.stringify(metadata[k])}`).join(' ');
+    msg += ` ${metaStr}`;
+  }
 
-// Determine log level based on environment
-function getLogLevel(): string {
-  const env = process.env.NODE_ENV || 'development';
-  return env === 'development' ? 'debug' : process.env.LOG_LEVEL || 'info';
-}
+  // Add stack trace for errors
+  if (metadata.stack) {
+    msg += `\n${metadata.stack}`;
+  }
 
-// Custom format for console
-const consoleFormat = winston.format.combine(
-  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-  winston.format.colorize({ all: true }),
-  winston.format.printf(({ timestamp, level, message, ...meta }) => {
-    const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
-    return `${timestamp} [${level}]: ${message}${metaStr}`;
-  })
-);
+  return msg;
+});
 
-// Custom format for files
-const fileFormat = winston.format.combine(
-  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-  winston.format.errors({ stack: true }),
-  winston.format.json()
-);
-
-// Get log directory
-function getLogDir(): string {
-  return process.env.LOG_DIR || join(process.cwd(), 'logs');
-}
-
-// Create transports
-const transports: winston.transport[] = [
-  // Console transport
-  new winston.transports.Console({
-    format: consoleFormat,
-  }),
-];
-
-// Add file transports in production
-if (process.env.NODE_ENV === 'production' || process.env.LOG_TO_FILE === 'true') {
-  const logDir = getLogDir();
-
-  transports.push(
-    // Error log
-    new winston.transports.File({
-      filename: join(logDir, 'error.log'),
-      level: 'error',
-      format: fileFormat,
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
+// Create base logger
+const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL || 'info',
+  format: combine(
+    errors({ stack: true }),
+    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    logFormat
+  ),
+  transports: [
+    new winston.transports.Console({
+      format: combine(
+        colorize({ all: true }),
+        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        logFormat
+      ),
     }),
-    // Combined log
+  ],
+});
+
+// Add file transport if LOG_FILE is set
+if (process.env.LOG_FILE) {
+  logger.add(
     new winston.transports.File({
-      filename: join(logDir, 'combined.log'),
-      format: fileFormat,
-      maxsize: 5242880, // 5MB
+      filename: process.env.LOG_FILE,
+      maxsize: 10 * 1024 * 1024, // 10MB
       maxFiles: 5,
     })
   );
 }
 
-// Create logger instance
-const logger = winston.createLogger({
-  level: getLogLevel(),
-  levels,
-  transports,
-  exitOnError: false,
-});
-
-// Helper functions for structured logging
-export function logInfo(message: string, meta?: Record<string, any>): void {
-  logger.info(message, meta);
-}
-
-export function logError(message: string, error?: Error | unknown, meta?: Record<string, any>): void {
-  const errorMeta = error instanceof Error
-    ? { error: error.message, stack: error.stack, ...meta }
-    : { error: String(error), ...meta };
-  logger.error(message, errorMeta);
-}
-
-export function logWarn(message: string, meta?: Record<string, any>): void {
-  logger.warn(message, meta);
-}
-
-export function logDebug(message: string, meta?: Record<string, any>): void {
-  logger.debug(message, meta);
-}
-
-export function logHttp(message: string, meta?: Record<string, any>): void {
-  logger.http(message, meta);
-}
-
-// Component-specific loggers
-export function createComponentLogger(component: string) {
+/**
+ * Create a child logger with component name
+ */
+function createComponentLogger(component: string) {
   return {
-    info: (message: string, meta?: Record<string, any>) =>
-      logInfo(`[${component}] ${message}`, meta),
-    error: (message: string, error?: Error | unknown, meta?: Record<string, any>) =>
-      logError(`[${component}] ${message}`, error, meta),
-    warn: (message: string, meta?: Record<string, any>) =>
-      logWarn(`[${component}] ${message}`, meta),
-    debug: (message: string, meta?: Record<string, any>) =>
-      logDebug(`[${component}] ${message}`, meta),
-    http: (message: string, meta?: Record<string, any>) =>
-      logHttp(`[${component}] ${message}`, meta),
+    info: (message: string, meta?: Record<string, unknown>) =>
+      logger.info(message, { component, ...meta }),
+    warn: (message: string, meta?: Record<string, unknown>) =>
+      logger.warn(message, { component, ...meta }),
+    error: (message: string, error?: unknown, meta?: Record<string, unknown>) => {
+      const errorMeta: Record<string, unknown> = { component, ...meta };
+      if (error instanceof Error) {
+        errorMeta.stack = error.stack;
+        errorMeta.errorMessage = error.message;
+      } else if (error) {
+        errorMeta.errorMessage = String(error);
+      }
+      logger.error(message, errorMeta);
+    },
+    debug: (message: string, meta?: Record<string, unknown>) =>
+      logger.debug(message, { component, ...meta }),
+    http: (message: string, meta?: Record<string, unknown>) =>
+      logger.http(message, { component, ...meta }),
   };
 }
 
-// Pre-configured component loggers
+// Export component loggers
 export const agentLogger = createComponentLogger('Agent');
 export const dbLogger = createComponentLogger('Database');
 export const aiLogger = createComponentLogger('AI');
@@ -141,5 +94,5 @@ export const schedulerLogger = createComponentLogger('Scheduler');
 export const serverLogger = createComponentLogger('Server');
 export const approvalLogger = createComponentLogger('Approval');
 
-// Export the main logger instance
+// Export base logger for general use
 export default logger;
