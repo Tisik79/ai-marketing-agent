@@ -79,69 +79,7 @@ This project also provides a Model Context Protocol (MCP) server designed to int
     ```bash
     cp .env.example .env
     ```
-    Then edit the `.env` file with your actual values:
-    ```dotenv
-    FACEBOOK_APP_ID=YOUR_APP_ID
-    FACEBOOK_APP_SECRET=YOUR_APP_SECRET
-    FACEBOOK_ACCESS_TOKEN=YOUR_ACCESS_TOKEN
-    FACEBOOK_ACCOUNT_ID=act_YOUR_ACCOUNT_ID
-    PORT=3000
-    ```
-    Replace placeholders with your actual values. **Ensure the Access Token has the `ads_management` and `pages_manage_posts` permissions.**
-
-    > **Security Note**: Never commit your `.env` file to version control. The `.env` file is already included in `.gitignore`.
-
-## Usage
-
-1.  **Build the server:**
-    ```bash
-    npm run build
-    ```
-    This compiles the TypeScript code to JavaScript in the `dist` folder.
-
-2.  **Run the server:**
-    ```bash
-    npm start
-    ```
-    The server will start and listen for MCP connections via stdio.
-
-3.  **Connect with an MCP Client (e.g., Claude Desktop):**
-    Configure your MCP client to connect to this server using the `npm start` command or by directly running `node dist/index.js`.
-
-## Available Tools (via MCP)
-
-### Campaign Management
-*   `create_campaign`: Creates a new ad campaign.
-*   `get_campaigns`: Lists existing campaigns.
-*   `get_campaign_details`: Gets details for a specific campaign.
-*   `update_campaign`: Updates an existing campaign.
-*   `delete_campaign`: Deletes a campaign.
-
-### Ad Set Management
-*   `create_ad_set`: Creates a new ad set.
-*   `get_adsets`: Lists ad sets with optional filtering by campaign, status, and limit.
-
-### Ad Management
-*   `get_ads`: Lists ads with optional filtering by ad set, campaign, status, and limit.
-
-### Audience Management
-*   `create_custom_audience`: Creates a custom, website, or engagement audience.
-*   `get_audiences`: Lists available custom audiences.
-*   `create_lookalike_audience`: Creates a lookalike audience.
-
-### Post Management
-*   `create_post`: Creates an organic post on a Facebook Page. Supports text posts, posts with links, and posts with images.
-
-### Analytics
-*   `get_campaign_insights`: Retrieves performance insights for a campaign.
-*   `get_adset_insights`: Retrieves performance insights for an ad set.
-*   `get_ad_insights`: Retrieves performance insights for an individual ad.
-
-Refer to the server's tool descriptions in your MCP client for detailed parameter information.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit pull requests or open issues.
+    Then edit the `.env` file with your actual values.
 
 ## License
 
