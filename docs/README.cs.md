@@ -38,6 +38,8 @@ AI Marketing Agent je Node.js aplikace využívající Claude AI (Anthropic) pro
 - Vytváří poutavé příspěvky na Facebook přizpůsobené vaší cílové skupině
 - Zohledňuje aktuální datum, roční období a relevantní události
 - Navrhuje optimální časy publikace a hashtagy
+- **Generování obrázků pomocí Nano Banana (Gemini 2.5 Flash Image)** - AI automaticky vytváří obrázky k příspěvkům
+- Možnost nahrát vlastní obrázek v chatovém rozhraní
 
 ### Analýza výkonu kampaní
 - Analyzuje zobrazení, dosah, kliky, CTR, CPC a konverze
@@ -80,6 +82,7 @@ AI Marketing Agent je Node.js aplikace využívající Claude AI (Anthropic) pro
   - Page Access Tokenem
 - Anthropic API klíč (Claude)
 - SMTP server pro e-mailové notifikace (např. Gmail)
+- Google AI API klíč (volitelné, pro generování obrázků pomocí Nano Banana)
 
 ---
 
@@ -147,6 +150,10 @@ BASE_URL=http://ip-vašeho-serveru:6081
 # Anthropic AI
 ANTHROPIC_API_KEY=sk-ant-...
 
+# Google AI (volitelné - pro generování obrázků)
+# Získejte na: https://aistudio.google.com/app/apikey
+GOOGLE_AI_API_KEY=AIzaSy-...
+
 # Konfigurace agenta
 AGENT_NAME=Marketing Agent
 MONTHLY_BUDGET=10000
@@ -154,13 +161,13 @@ DAILY_LIMIT=500
 BUDGET_ALERT_THRESHOLD=80
 
 # E-mail SMTP
-SMTP_HOST=smtp.gmail.com
+SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_SECURE=false
-SMTP_USER=vas-email@gmail.com
-SMTP_PASS=heslo-aplikace
-EMAIL_FROM=AI Marketing Agent <vas-email@gmail.com>
-EMAIL_TO=prijemce@email.cz
+SMTP_USER=noreply@example.com
+SMTP_PASS=<vase-smtp-heslo>
+EMAIL_FROM=AI Marketing Agent <noreply@example.com>
+EMAIL_TO=admin@example.com
 
 # Logování
 LOG_LEVEL=info
@@ -220,9 +227,15 @@ http://ip-vašeho-serveru:6081/dashboard/chat.html
 
 Příklady příkazů:
 - "Vytvoř příspěvek o zimní údržbě domu"
+- "Vytvoř příspěvek s obrázkem o jarní údržbě zahrady" (AI vygeneruje obrázek pomocí Nano Banana)
 - "Jak vypadá náš rozpočet?"
 - "Analyzuj výkon kampaní"
 - "Jaké příspěvky bychom měli publikovat tento týden?"
+
+**Generování obrázků:**
+- AI může automaticky generovat obrázky k příspěvkům pomocí Nano Banana (Gemini 2.5 Flash Image)
+- V chatu můžete také nahrát vlastní obrázek kliknutím na ikonu obrázku
+- Obrázky jsou optimalizovány pro středoevropský kontext
 
 ---
 
@@ -253,10 +266,12 @@ Každá čekající akce zobrazuje:
 
 Kliknutím na tlačítko náhledu se otevře modální okno zobrazující:
 - Úplný obsah příspěvku, jak se zobrazí na Facebooku
+- **Náhled obrázku** (pokud byl vygenerován pomocí Nano Banana nebo nahrán uživatelem)
 - Zdůvodnění AI pro návrh
 - Očekávaný dopad
 - Úroveň spolehlivosti (Vysoká/Střední/Nízká)
 - Tlačítka Schválit/Zamítnout
+- **Tlačítko Regenerovat obrázek** (pro obrázky vygenerované pomocí Nano Banana)
 
 ### Chatovací rozhraní (`/dashboard/chat.html`)
 
